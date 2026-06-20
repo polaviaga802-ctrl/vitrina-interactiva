@@ -1,19 +1,26 @@
 (function () {
   var API = 'https://vitrina-interactiva-production.up.railway.app';
 
-  // Obtener store_id desde el contexto de TN
   function getStoreId() {
     try {
       if (window.LS && window.LS.store && window.LS.store.id) return window.LS.store.id;
       if (window.__NUBE_SDK__ && window.__NUBE_SDK__.store) return window.__NUBE_SDK__.store.id;
-      var m = document.cookie.match(/store_id=(\d+)/);
-      if (m) return m[1];
     } catch (e) {}
     return null;
   }
 
+  function getCurrentPage() {
+    var path = window.location.pathname;
+    if (path === '/' || path === '') return 'home';
+    if (path.match(/\/productos\//) || path.match(/\/products\//)) return 'product';
+    if (path.match(/\/categorias\//) || path.match(/\/collections?\//)) return 'catalog';
+    return 'other';
+  }
+
   function injectStyles() {
+    if (document.getElementById('vi-styles')) return;
     var style = document.createElement('style');
+    style.id = 'vi-styles';
     style.textContent = [
       '.vi-section{margin:32px auto;max-width:1200px;padding:0 16px}',
       '.vi-title{font-size:18px;font-weight:700;margin-bottom:14px;color:#111}',
@@ -70,7 +77,6 @@
         popup.classList.remove('open');
         activePopup = null;
       });
-
       dot.addEventListener('click', function (e) {
         e.stopPropagation();
         if (activePopup && activePopup !== popup) activePopup.classList.remove('open');
@@ -93,6 +99,8 @@
     if (!looks || !looks.length) return;
     injectStyles();
 
+    // Si existe #vi-looks en la página, inyectar ahí
+    // Si no, agregar al final del main o body
     looks.forEach(function (look) {
       var section = document.createElement('div');
       section.className = 'vi-section';
@@ -116,10 +124,24 @@
     var storeId = getStoreId();
     if (!storeId) return;
 
-    fetch(API + '/api/public/looks?store_id=' + storeId)
-      .then(function (r) { return r.json(); })
-      .then(function (data) { render(data.looks); })
-      .catch(function () {});
+    var currentPage = getCurrentPage();
+    // Pedir looks de esta página + los de "all"
+    var pages = [currentPage];
+    if (currentPage !== 'all') pages.push('all');
+
+    var allLooks = [];
+    var pending = pages.length;
+
+    pages.forEach(function (page) {
+      fetch(API + '/api/public/looks?store_id=' + storeId + '&page=' + page)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.looks) allLooks = allLooks.concat(data.looks);
+          pending--;
+          if (pending === 0) render(allLooks);
+        })
+        .catch(function () { pending--; if (pending === 0) render(allLooks); });
+    });
   }
 
   if (document.readyState === 'loading') {

@@ -117,11 +117,13 @@ app.post('/api/looks', auth, async (req, res) => {
   try {
     const { id, title, image_url, dots, active } = req.body;
     if (!image_url || !dots) return res.status(400).json({ error: 'Faltan image_url o dots' });
+    const { page } = req.body;
     const row = {
       store_id: req.storeId,
       title: title || 'Look',
       image_url,
       dots: typeof dots === 'string' ? dots : JSON.stringify(dots),
+      page: page || 'home',
       active: active !== false,
       updated_at: new Date().toISOString()
     };
@@ -146,10 +148,12 @@ app.delete('/api/looks/:id', auth, async (req, res) => {
 
 // ─── API PÚBLICA: looks para el widget (sin cookie) ────────────────────────
 app.get('/api/public/looks', async (req, res) => {
-  const storeId = req.query.store_id;
-  if (!storeId) return res.status(400).json({ error: 'store_id requerido' });
+  const { store_id, page } = req.query;
+  if (!store_id) return res.status(400).json({ error: 'store_id requerido' });
   try {
-    const looks = await supa('GET', `vi_looks?store_id=eq.${storeId}&active=eq.true&order=created_at.desc`);
+    let params = `store_id=eq.${store_id}&active=eq.true&order=created_at.desc`;
+    if (page) params += `&page=eq.${page}`;
+    const looks = await supa('GET', `vi_looks?${params}`);
     res.json({ ok: true, looks: looks || [] });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -376,6 +380,13 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:12px 0}
         <div class="section-title">Look</div>
         <label>Título</label>
         <input id="f-title" type="text" placeholder="Ej: Look de verano">
+        <label>¿Dónde mostrarlo?</label>
+        <select id="f-page" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;outline:none;margin-bottom:12px">
+          <option value="home">Inicio</option>
+          <option value="all">Todas las páginas</option>
+          <option value="catalog">Catálogo / Colecciones</option>
+          <option value="product">Página de producto</option>
+        </select>
         <hr>
         <div class="section-title">Puntos</div>
         <div id="dot-list"></div>
@@ -460,6 +471,7 @@ function editarLook(id) {
   state.selDot = null;
   document.getElementById('imgUrl').value = look.image_url;
   document.getElementById('f-title').value = look.title || '';
+  document.getElementById('f-page').value = look.page || 'home';
   var img = document.getElementById('mainImg');
   img.src = look.image_url;
   img.onload = function() {
@@ -585,7 +597,8 @@ async function guardarLook() {
     return {x:d.x,y:d.y,nombre:d.nombre,precio:d.precio,url:d.url,foto:d.foto};
   });
 
-  var body = {title:title,image_url:url,dots:cleanDots,active:true};
+  var page = document.getElementById('f-page').value;
+  var body = {title:title,image_url:url,dots:cleanDots,active:true,page:page};
   if (state.editId) body.id = state.editId;
 
   try {
