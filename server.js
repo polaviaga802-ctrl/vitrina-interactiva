@@ -286,9 +286,9 @@ header h1{font-size:17px;font-weight:700}
 .url-row button{padding:9px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap}
 .url-row button:hover{background:#6d28d9}
 .hint{font-size:12px;color:#666;background:#fffbe6;border:1px solid #fde68a;border-radius:6px;padding:8px 12px}
-.img-wrap{position:relative;display:none;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);user-select:none}
-.img-wrap img{display:block;width:100%}
-.img-wrap.active{display:inline-block}
+.img-wrap{position:relative;display:none;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);user-select:none;width:100%}
+.img-wrap img{display:block;width:100%;height:auto}
+.img-wrap.active{display:block}
 .dot{position:absolute;width:26px;height:26px;background:#7c3aed;border:3px solid #fff;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;transition:transform .15s}
 .dot:hover{transform:translate(-50%,-50%) scale(1.1)}
 .dot.sel{background:#ea580c;box-shadow:0 0 0 3px #fff,0 0 0 5px #ea580c}
