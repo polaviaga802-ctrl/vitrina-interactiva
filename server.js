@@ -144,6 +144,16 @@ app.delete('/api/looks/:id', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ─── API PÚBLICA: looks para el widget (sin cookie) ────────────────────────
+app.get('/api/public/looks', async (req, res) => {
+  const storeId = req.query.store_id;
+  if (!storeId) return res.status(400).json({ error: 'store_id requerido' });
+  try {
+    const looks = await supa('GET', `vi_looks?store_id=eq.${storeId}&active=eq.true&order=created_at.desc`);
+    res.json({ ok: true, looks: looks || [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─── SCRIPT NUBSDK (se registra en portal partners → Scripts) ──────────────
 app.get('/script.js', async (req, res) => {
   const storeId = req.query.store_id;
