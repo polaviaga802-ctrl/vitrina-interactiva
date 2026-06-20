@@ -23,7 +23,7 @@ const VI_APP_ID   = process.env.VI_APP_ID   || '34738';
 const VI_SECRET   = process.env.VI_SECRET   || '57fdd2e43b0235ac901d0f113f2113dbae12a7a88e5ff387';
 const SUPA_URL    = process.env.SUPA_URL    || 'https://drkbluugqiofsedmppjk.supabase.co';
 const SUPA_KEY    = process.env.SUPA_KEY    || 'sb_publishable_IHiLnxEsfLJngPBFKpoe5w_LZBTp6qB';
-const BASE_URL    = process.env.BASE_URL    || 'https://vitrina-interactiva.railway.app';
+const BASE_URL    = process.env.BASE_URL    || 'https://vitrina-interactiva-production.up.railway.app';
 
 // ─── SUPABASE ──────────────────────────────────────────────────────────────
 async function supa(method, table, body, params) {
