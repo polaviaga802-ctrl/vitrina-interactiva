@@ -277,7 +277,8 @@ header{background:#fff;border-bottom:1px solid #e0e0e0;padding:14px 24px;display
 header h1{font-size:17px;font-weight:700}
 .store-badge{font-size:11px;color:#888;background:#f3f4f6;padding:3px 10px;border-radius:99px}
 .container{display:grid;grid-template-columns:1fr 320px;gap:0;height:calc(100vh - 53px)}
-.canvas{padding:20px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.canvas{padding:20px;overflow-y:auto;overflow-x:auto;display:flex;flex-direction:column;gap:14px}
+.img-wrap{max-height:none !important}
 .sidebar{background:#fff;border-left:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden}
 .url-row{display:flex;gap:8px}
 .url-row input{flex:1;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;outline:none;transition:border-color .2s}
