@@ -3,8 +3,9 @@
 
   function getStoreId() {
     try {
-      if (window.LS && window.LS.store && window.LS.store.id) return window.LS.store.id;
-      if (window.__NUBE_SDK__ && window.__NUBE_SDK__.store) return window.__NUBE_SDK__.store.id;
+      if (window.LS && window.LS.store && window.LS.store.id) return String(window.LS.store.id);
+      if (window.__NUBE_SDK__ && window.__NUBE_SDK__.store && window.__NUBE_SDK__.store.id) return String(window.__NUBE_SDK__.store.id);
+      if (window.LS_store_id) return String(window.LS_store_id);
     } catch (e) {}
     return null;
   }
@@ -99,8 +100,6 @@
     if (!looks || !looks.length) return;
     injectStyles();
 
-    // Si existe #vi-looks en la página, inyectar ahí
-    // Si no, agregar al final del main o body
     looks.forEach(function (look) {
       var section = document.createElement('div');
       section.className = 'vi-section';
@@ -120,12 +119,8 @@
     });
   }
 
-  function init() {
-    var storeId = getStoreId();
-    if (!storeId) return;
-
+  function fetchLooks(storeId) {
     var currentPage = getCurrentPage();
-    // Pedir looks de esta página + los de "all"
     var pages = [currentPage];
     if (currentPage !== 'all') pages.push('all');
 
@@ -142,6 +137,22 @@
         })
         .catch(function () { pending--; if (pending === 0) render(allLooks); });
     });
+  }
+
+  function init() {
+    var storeId = getStoreId();
+    if (storeId) {
+      fetchLooks(storeId);
+    } else {
+      // Fallback: buscar store_id por dominio
+      var domain = window.location.hostname;
+      fetch(API + '/api/public/store?domain=' + encodeURIComponent(domain))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.store_id) fetchLooks(data.store_id);
+        })
+        .catch(function () {});
+    }
   }
 
   if (document.readyState === 'loading') {

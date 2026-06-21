@@ -84,7 +84,14 @@ app.get('/callback', async (req, res) => {
       code
     });
     const { access_token, user_id } = r.data;
-    await supa('POST', 'vi_tiendas', [{ store_id: String(user_id), token: access_token, installed_at: new Date().toISOString() }]);
+    let domain = null;
+    try {
+      const sr = await axios.get(`https://api.tiendanube.com/v1/${user_id}/store`, {
+        headers: { 'Authentication': `bearer ${access_token}`, 'User-Agent': 'Vitrina Interactiva (polaviaga802@gmail.com)' }
+      });
+      domain = sr.data?.main_domain || sr.data?.original_domain || null;
+    } catch (e) { console.warn('No se pudo obtener dominio:', e.message); }
+    await supa('POST', 'vi_tiendas', [{ store_id: String(user_id), token: access_token, domain, installed_at: new Date().toISOString() }]);
     console.log(`✅ Tienda instalada: ${user_id}`);
     setCookie(res, 'vi_store', String(user_id));
     res.redirect('/panel');
@@ -143,6 +150,21 @@ app.delete('/api/looks/:id', auth, async (req, res) => {
   try {
     await supa('DELETE', `vi_looks?id=eq.${req.params.id}&store_id=eq.${req.storeId}`, null);
     res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─── API PÚBLICA: buscar store_id por dominio ──────────────────────────────
+app.get('/api/public/store', async (req, res) => {
+  const { domain } = req.query;
+  if (!domain) return res.status(400).json({ error: 'domain requerido' });
+  try {
+    const tiendas = await supa('GET', `vi_tiendas?domain=eq.${domain}&limit=1`);
+    if (tiendas && tiendas.length) return res.json({ ok: true, store_id: tiendas[0].store_id });
+    // Fallback: buscar por domain sin www
+    const clean = domain.replace(/^www\./, '');
+    const tiendas2 = await supa('GET', `vi_tiendas?domain=ilike.*${clean}*&limit=1`);
+    if (tiendas2 && tiendas2.length) return res.json({ ok: true, store_id: tiendas2[0].store_id });
+    res.json({ ok: false, store_id: null });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
